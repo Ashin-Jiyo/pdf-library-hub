@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modern PDF Upload Dashboard</title>
+  <style>
+    /* Reset & Base Styles */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f6f9;
+      color: #333;
+    }
+
+    h1, h2 {
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 10px 15px;
+      margin: 5px 0;
+      background: #ecf0f1;
+      border-left: 4px solid transparent;
+      transition: 0.3s;
+      color: #333;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .sidebar a:hover {
+      background: #dfe6e9;
+      border-left: 4px solid #3498db;
+    }
+
+    .container {
+      padding: 30px;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    .upload-box {
+      border: 2px dashed #3498db;
+      background: #ffffff;
+      padding: 40px;
+      text-align: center;
+      color: #7f8c8d;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    .upload-box:hover {
+      background: #f0faff;
+      color: #2980b9;
+    }
+
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin: 10px 0;
+      font-size: 14px;
+      transition: border 0.3s;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #3498db;
+      outline: none;
+    }
+
+    button,
+    input[type="submit"],
+    input[type="button"] {
+      padding: 10px 20px;
+      border: none;
+      background: #3498db;
+      color: #fff;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-top: 15px;
+    }
+
+    button:hover,
+    input[type="submit"]:hover,
+    input[type="button"]:hover {
+      background: #2980b9;
+    }
+
+    button.cancel {
+      background: #bdc3c7;
+      color: #2c3e50;
+      margin-right: 10px;
+    }
+
+    button.cancel:hover {
+      background: #95a5a6;
+    }
+
+    input.tags {
+      border: 1px dashed #aaa;
+      background: #fafafa;
+    }
+
+    input[type="radio"] {
+      accent-color: #3498db;
+      margin-right: 5px;
+    }
+
+    #link-input {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Upload New PDF</h1>
+
+    <div>
+      <label><input type="radio" name="method" value="file" checked onchange="toggleUploadMethod(this.value)"> Upload File</label>
+      <label><input type="radio" name="method" value="link" onchange="toggleUploadMethod(this.value)"> Paste Link</label>
+    </div>
+
+    <div id="file-upload" class="upload-box">
+      <p>Drop PDF file here or click to browse</p>
+      <p><small>PDF up to 25MB</small></p>
+    </div>
+
+    <input type="text" id="link-input" placeholder="Paste PDF link here">
+
+    <input type="text" placeholder="Enter PDF title" maxlength="18">
+    <input type="text" placeholder="Enter author name">
+    <textarea placeholder="Enter a description for this PDF"></textarea>
+    <select>
+      <option>Select a category</option>
+    </select>
+    <input type="text" placeholder="Type a tag and press Enter" class="tags">
+
+    <div>
+      <button class="cancel">Cancel</button>
+      <button>Upload PDF</button>
+    </div>
+  </div>
+
+  <script>
+    function toggleUploadMethod(value) {
+      const fileBox = document.getElementById('file-upload');
+      const linkBox = document.getElementById('link-input');
+      if (value === 'file') {
+        fileBox.style.display = 'block';
+        linkBox.style.display = 'none';
+      } else {
+        fileBox.style.display = 'none';
+        linkBox.style.display = 'block';
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PDF Library Hub - Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+    body {
+      display: flex;
+      min-height: 100vh;
+      background: #f7f9fc;
+    }
+    .sidebar {
+      width: 250px;
+      background: white;
+      border-right: 1px solid #eee;
+      padding: 2rem 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .sidebar h2 {
+      color: #333;
+      margin-bottom: 2rem;
+    }
+    .sidebar a {
+      text-decoration: none;
+      color: #333;
+      margin: 0.8rem 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+    .sidebar a.active {
+      color: #3b82f6;
+      font-weight: 600;
+    }
+    .sidebar .bottom {
+      border-top: 1px solid #eee;
+      padding-top: 1rem;
+    }
+    .main {
+      flex: 1;
+      padding: 2rem;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .search {
+      flex: 1;
+      margin: 0 1rem;
+    }
+    .search input {
+      width: 100%;
+      padding: 0.5rem 1rem;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+    }
+    .cards {
+      display: flex;
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    .card {
+      flex: 1;
+      padding: 1.5rem;
+      border-radius: 12px;
+      background: #e5f0ff;
+      text-align: center;
+    }
+    .card:nth-child(2) {
+      background: #fff4dc;
+    }
+    .card:nth-child(3) {
+      background: #f3e8ff;
+    }
+    .card h3 {
+      margin-bottom: 0.5rem;
+    }
+    .card p {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    table th, table td {
+      text-align: left;
+      padding: 0.8rem;
+      border-bottom: 1px solid #eee;
+    }
+    .section {
+      display: none;
+    }
+    .section.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div>
+      <h2>📚 PDF Hub</h2>
+      <a class="active" onclick="showSection('dashboard')">🏠 Dashboard</a>
+      <a onclick="showSection('categories')">📁 Categories</a>
+      <a onclick="showSection('upload')">⬆️ Upload</a>
+    </div>
+    <div class="bottom">
+      <a>🚪 Logout</a>
+      <a>🌙 Dark Mode</a>
+    </div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div>Dashboard</div>
+      <div class="search">
+        <input type="text" placeholder="Search here...">
+      </div>
+      <div>
+        <img src="https://i.pravatar.cc/40" alt="profile" style="border-radius:50%;">
+      </div>
+    </div>
+
+    <div id="dashboard" class="section active">
+      <div class="cards">
+        <div class="card">
+          <h3>Total Likes</h3>
+          <p>50,120</p>
+        </div>
+        <div class="card">
+          <h3>Comments</h3>
+          <p>25,120</p>
+        </div>
+        <div class="card">
+          <h3>Total Share</h3>
+          <p>10,320</p>
+        </div>
+      </div>
+      <div>
+        <h3>Recent Activity</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Joined</th>
+              <th>Type</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Prem Shahi</td>
+              <td>premshahi@gmail.com</td>
+              <td>2022-02-12</td>
+              <td>New</td>
+              <td>Liked</td>
+            </tr>
+            <tr>
+              <td>Deepa Chand</td>
+              <td>deepachand@gmail.com</td>
+              <td>2022-02-12</td>
+              <td>Member</td>
+              <td>Shared</td>
+            </tr>
+            <tr>
+              <td>Prakash Shahi</td>
+              <td>prakashshahi@gmail.com</td>
+              <td>2022-02-13</td>
+              <td>New</td>
+              <td>Liked</td>
+            </tr>
+            <tr>
+              <td>Manisha Chand</td>
+              <td>manishachan@gmail.com</td>
+              <td>2022-02-13</td>
+              <td>Member</td>
+              <td>Shared</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="categories" class="section">
+      <h3>Categories</h3>
+      <p>List of categories will appear here.</p>
+    </div>
+
+    <div id="upload" class="section">
+      <h3>Upload PDF</h3>
+      <p>Upload form goes here.</p>
+    </div>
+  </div>
+
+  <script>
+    function showSection(id) {
+      document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+
+      document.querySelectorAll('.sidebar a').forEach(link => link.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

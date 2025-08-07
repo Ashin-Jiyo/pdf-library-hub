@@ -1,0 +1,524 @@
+@import "tailwindcss";
+
+/* Reset default browser margins and padding */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Custom animations and styles */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* Custom gradient borders */
+.border-gradient {
+  background: linear-gradient(45deg, #ec4899, #8b5cf6, #3b82f6);
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+/* Glassmorphism effect */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #6b7280;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
+}
+
+/* Custom focus states */
+.focus-gradient:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.5);
+}
+
+/* Hover effects */
+.hover-lift:hover {
+  transform: translateY(-4px);
+  transition: transform 0.3s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 20px 40px rgba(139, 92, 246, 0.3);
+  transition: box-shadow 0.3s ease;
+}
+
+/* Brutalist Card Styles */
+.brutalist-card {
+  width: 300px;
+  padding: 15px;
+  margin: 0;
+  background: #fff;
+  border: 6px solid #000;
+  box-shadow: 12px 12px 0 #000;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+@media (max-width: 640px) {
+  .brutalist-card {
+    width: 280px;
+    padding: 12px;
+    border: 4px solid #000;
+    box-shadow: 8px 8px 0 #000;
+  }
+}
+
+@media (max-width: 400px) {
+  .brutalist-card {
+    width: 260px;
+    padding: 10px;
+  }
+}
+
+.brutalist-card:hover {
+  transform: translate(-5px, -5px);
+  box-shadow: 17px 17px 0 #000;
+}
+
+.brutalist-card__title {
+  font-size: 26px;
+  font-weight: 900;
+  color: #000;
+  text-transform: uppercase;
+  margin-bottom: 15px;
+  display: block;
+  position: relative;
+  overflow: hidden;
+  line-height: 1.1;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+.brutalist-card__title::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 90%;
+  height: 3px;
+  background-color: #000;
+  transform: translateX(-100%);
+  transition: transform 0.3s;
+}
+
+.brutalist-card:hover .brutalist-card__title::after {
+  transform: translateX(0);
+}
+
+.brutalist-card__content {
+  font-size: 16px;
+  line-height: 1.4;
+  color: #000;
+  margin-bottom: 15px;
+}
+
+.brutalist-card__author {
+  font-size: 14px;
+  font-weight: bold;
+  color: #666;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+}
+
+.brutalist-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 15px;
+}
+
+.brutalist-card__tag {
+  display: inline-block;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  background: #000;
+  color: #fff;
+  border: 2px solid #000;
+  border-radius: 0;
+  line-height: 1;
+}
+
+.brutalist-card__tag--more {
+  background: #666;
+  border-color: #666;
+}
+
+.brutalist-card__buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.brutalist-card__button {
+  border: 3px solid #000;
+  background: #000;
+  color: #fff;
+  padding: 12px 16px;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s;
+  flex: 1;
+}
+
+.brutalist-card__button::before {
+  content: "Sure?";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 105%;
+  background-color: #5f222e;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(100%);
+  transition: transform 0.3s;
+  font-weight: bold;
+}
+
+.brutalist-card__button:hover::before {
+  transform: translateY(0);
+}
+
+.brutalist-card__button:active {
+  transform: scale(0.95);
+}
+
+.brutalist-card__button--download {
+  border: 3px solid #000;
+  background: #000;
+  color: #fff;
+  padding: 12px 16px;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s;
+  flex: 1;
+}
+
+.brutalist-card__button--download::before {
+  content: "Sure?";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 105%;
+  background-color: #5f222e;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(100%);
+  transition: transform 0.3s;
+  font-weight: bold;
+}
+
+.brutalist-card__button--download:hover::before {
+  transform: translateY(0);
+}
+
+.brutalist-card__button--download:active {
+  transform: scale(0.95);
+}
+
+.brutalist-card__button--open {
+  border: 3px solid #000;
+  background: #000;
+  color: #fff;
+  padding: 12px 16px;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s;
+  width: 100%;
+}
+
+.brutalist-card__button--open::before {
+  content: "Sure?";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 105%;
+  background-color: rgb(34, 82, 154);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(100%);
+  transition: transform 0.3s;
+  font-weight: bold;
+}
+
+.brutalist-card__button--open:hover::before {
+  transform: translateY(0);
+}
+
+.brutalist-card__button--open:active {
+  transform: scale(0.95);
+}
+
+/* Responsive grid adjustments */
+@media (max-width: 1024px) {
+  .results-section .grid-container {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+    gap: 30px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .results-section .grid-container {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+    padding: 10px 0 !important;
+  }
+}
+
+@keyframes glitch {
+  0% {
+    transform: translate(2px, 2px);
+  }
+  25% {
+    transform: translate(-2px, -2px);
+  }
+  50% {
+    transform: translate(-2px, 2px);
+  }
+  75% {
+    transform: translate(2px, -2px);
+  }
+  100% {
+    transform: translate(2px, 2px);
+  }
+}
+
+.glitch {
+  animation: glitch 0.3s infinite;
+}
+
+/* Tea Time Study Styles */
+.main-container {
+  min-height: 100vh;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (max-width: 768px) {
+  .content-wrapper {
+    gap: 2rem;
+    padding: 0 0.75rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .content-wrapper {
+    gap: 1.5rem;
+    padding: 0 0.5rem;
+  }
+}
+
+.hero-section {
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: #1f2937;
+  margin: 0 auto;
+  width: 90%;
+  max-width: 800px;
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    width: 95%;
+    padding: 2rem 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-section {
+    width: 100%;
+    padding: 1.5rem 1rem;
+    border-radius: 12px;
+  }
+}
+
+.logo-container {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.logo {
+  height: 120px;
+  width: auto;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+}
+
+@media (max-width: 768px) {
+  .logo {
+    height: 100px;
+  }
+}
+
+@media (max-width: 640px) {
+  .logo {
+    height: 80px;
+  }
+}
+
+.hero-title {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+}
+
+.hero-description {
+  font-size: 1.25rem;
+  opacity: 0.95;
+  max-width: 600px;
+  margin: 0 auto 2rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .hero-description {
+    font-size: 1.125rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-description {
+    font-size: 1rem;
+  }
+}
+
+.search-section {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  border-radius: 16px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+  .search-section {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+}
+
+.results-section {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  border-radius: 16px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
+}

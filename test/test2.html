@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Search</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f9ff;
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
+    }
+    .search-container {
+      background: white;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      border-radius: 16px;
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 900px;
+    }
+    .search-bar {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .search-input {
+      flex-grow: 1;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      outline: none;
+    }
+    .dropdown-container {
+      position: relative;
+    }
+    .dropdown-button {
+      padding: 0.75rem 1rem;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      background: white;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .dropdown-list {
+      position: absolute;
+      top: 110%;
+      left: 0;
+      width: 200px;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      display: none;
+      flex-direction: column;
+      z-index: 1000;
+    }
+    .dropdown-list.active {
+      display: flex;
+    }
+    .dropdown-item {
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .dropdown-item:hover {
+      background: #f0f4ff;
+    }
+    .dropdown-item.selected::after {
+      content: "\2713";
+      float: right;
+      color: #5b82f5;
+    }
+    .doc-count {
+      font-size: 1rem;
+      color: #46556b;
+      margin-left: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="search-container">
+    <div class="search-bar">
+      <input class="search-input" type="text" placeholder="Search PDFs by title, author, content, or tags...">
+
+      <div class="dropdown-container" onclick="toggleDropdown('categoryDropdown')">
+        <div class="dropdown-button">&#x1F5C3; All Categories ▾</div>
+        <div id="categoryDropdown" class="dropdown-list">
+          <div class="dropdown-item selected">All Categories</div>
+          <div class="dropdown-item">Technology</div>
+          <div class="dropdown-item">Marketing</div>
+          <div class="dropdown-item">Finance</div>
+          <div class="dropdown-item">Business</div>
+          <div class="dropdown-item">Reports</div>
+          <div class="dropdown-item">Manuals</div>
+        </div>
+      </div>
+
+      <div class="dropdown-container" onclick="toggleDropdown('sortDropdown')">
+        <div class="dropdown-button">&#x2197; Latest ▾</div>
+        <div id="sortDropdown" class="dropdown-list">
+          <div class="dropdown-item selected">Latest</div>
+          <div class="dropdown-item">Oldest</div>
+          <div class="dropdown-item">Most Viewed</div>
+        </div>
+      </div>
+
+    </div>
+    <p class="doc-count">6 documents found</p>
+  </div>
+
+  <script>
+    function toggleDropdown(id) {
+      document.querySelectorAll('.dropdown-list').forEach(list => {
+        if (list.id !== id) list.classList.remove('active');
+      });
+      const dropdown = document.getElementById(id);
+      dropdown.classList.toggle('active');
+    }
+
+    window.onclick = function(event) {
+      if (!event.target.closest('.dropdown-container')) {
+        document.querySelectorAll('.dropdown-list').forEach(list => list.classList.remove('active'));
+      }
+    }
+  </script>
+</body>
+</html>
