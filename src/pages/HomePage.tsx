@@ -14,6 +14,9 @@ import { usePDFs } from '../hooks/usePDF';
 import { useCategories } from '../hooks/useCategories';
 import { useTypingPlaceholder } from '../hooks/useTypingPlaceholder';
 
+// Utilities
+import { getAssetPath } from '../utils/assets';
+
 const HomePage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -114,7 +117,7 @@ const HomePage: React.FC = () => {
           {/* Logo */}
           <div className="logo-container">
             <img 
-              src="/images/logow.svg" 
+              src={getAssetPath('/logow.svg')} 
               alt="Tea Time Study Logo" 
               className="logo"
             />
