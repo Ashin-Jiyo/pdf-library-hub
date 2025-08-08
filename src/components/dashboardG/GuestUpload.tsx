@@ -16,7 +16,7 @@ const GuestUpload: React.FC = () => {
     title: '',
     author: '',
     description: '',
-    categories: [] as string[],
+    category: '' as string, // Changed from categories array to single category
     tags: [] as string[],
     pdfLink: '',
   });
@@ -89,10 +89,9 @@ const GuestUpload: React.FC = () => {
   const handleCategoryChange = (categoryId: string) => {
     setFormData(prev => ({
       ...prev,
-      categories: prev.categories.includes(categoryId)
-        ? prev.categories.filter(id => id !== categoryId)
-        : [...prev.categories, categoryId]
+      category: categoryId
     }));
+    setCategoryDropdownOpen(false); // Close dropdown after selection
   };
 
   const handleClear = () => {
@@ -100,7 +99,7 @@ const GuestUpload: React.FC = () => {
       title: '',
       author: '',
       description: '',
-      categories: [],
+      category: '',
       tags: [],
       pdfLink: '',
     });
@@ -149,7 +148,7 @@ const GuestUpload: React.FC = () => {
         title: formData.title.trim(),
         author: formData.author.trim(),
         description: formData.description.trim(),
-        categories: formData.categories,
+        categories: formData.category ? [formData.category] : [],
         tags: formData.tags,
         viewCount: 0,
         downloadCount: 0,
@@ -317,7 +316,9 @@ const GuestUpload: React.FC = () => {
             }}
             onClick={() => document.getElementById('pdf-file')?.click()}
             >
-              <FileText size={48} color="#3498db" style={{ marginBottom: '1rem' }} />
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                <FileText size={48} color="#3498db" />
+              </div>
               {selectedFile ? (
                 <div>
                   <p style={{ color: '#2c3e50', fontWeight: 600, margin: '0 0 0.5rem 0' }}>
@@ -567,12 +568,12 @@ const GuestUpload: React.FC = () => {
                   gap: '0.5rem',
                   flex: 1
                 }}>
-                  {formData.categories.length > 0 ? (
-                    formData.categories.map((categoryId) => {
-                      const category = categories.find(cat => cat.id === categoryId);
+                  {formData.category ? (
+                    (() => {
+                      const category = categories.find(cat => cat.id === formData.category);
                       return category ? (
                         <span
-                          key={categoryId}
+                          key={formData.category}
                           style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -588,10 +589,7 @@ const GuestUpload: React.FC = () => {
                           {category.name}
                           <button
                             type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCategoryChange(categoryId);
-                            }}
+                            onClick={() => setFormData(prev => ({ ...prev, category: '' }))}
                             style={{
                               background: 'none',
                               border: 'none',
@@ -606,10 +604,10 @@ const GuestUpload: React.FC = () => {
                           </button>
                         </span>
                       ) : null;
-                    })
+                    })()
                   ) : (
                     <span style={{ color: '#7f8c8d', fontStyle: 'italic' }}>
-                      Select categories...
+                      Select category...
                     </span>
                   )}
                 </div>
@@ -653,24 +651,25 @@ const GuestUpload: React.FC = () => {
                         gap: '0.5rem',
                         borderBottom: '1px solid rgba(224, 230, 237, 0.5)',
                         transition: 'all 0.3s ease',
-                        background: formData.categories.includes(category.id) 
+                        background: formData.category === category.id 
                           ? 'rgba(52, 152, 219, 0.1)' 
                           : 'transparent'
                       }}
                       onMouseOver={(e) => {
-                        e.currentTarget.style.background = formData.categories.includes(category.id)
+                        e.currentTarget.style.background = formData.category === category.id
                           ? 'rgba(52, 152, 219, 0.2)'
                           : 'rgba(52, 152, 219, 0.05)';
                       }}
                       onMouseOut={(e) => {
-                        e.currentTarget.style.background = formData.categories.includes(category.id)
+                        e.currentTarget.style.background = formData.category === category.id
                           ? 'rgba(52, 152, 219, 0.1)'
                           : 'transparent';
                       }}
                     >
                       <input
-                        type="checkbox"
-                        checked={formData.categories.includes(category.id)}
+                        type="radio"
+                        name="category"
+                        checked={formData.category === category.id}
                         onChange={() => {}}
                         style={{
                           width: '18px',
@@ -682,7 +681,7 @@ const GuestUpload: React.FC = () => {
                       <span style={{
                         color: '#2c3e50',
                         fontSize: '0.9rem',
-                        fontWeight: formData.categories.includes(category.id) ? 600 : 400
+                        fontWeight: formData.category === category.id ? 600 : 400
                       }}>
                         {category.name}
                       </span>

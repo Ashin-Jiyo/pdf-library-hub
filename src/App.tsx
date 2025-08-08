@@ -1,4 +1,4 @@
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 
@@ -14,6 +14,7 @@ import PDFDetailPage from './pages/PDFDetailPage';
 
 // Components
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import ClickSpark from './components/common/ClickSpark';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -30,6 +31,8 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <div className="min-h-screen">
+          {/* Global click spark overlay */}
+          <ClickSpark />
           <main>
             <Routes>
               <Route path="/" element={<HomePage />} />

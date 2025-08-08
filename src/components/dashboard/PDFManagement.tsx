@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { FileText, Eye, Download, Calendar, Edit, Trash2, AlertCircle } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { FileText, Eye, Download, Calendar, Edit, Trash2, AlertCircle, Search, X } from 'lucide-react';
 import { usePDFs, useDeletePDF, useUpdatePDF } from '../../hooks/usePDF';
+import { useCategories } from '../../hooks/useCategories';
 import { Link } from 'react-router-dom';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { toast } from 'react-hot-toast';
@@ -8,10 +9,12 @@ import type { PDFDocument } from '../../types';
 
 const PDFManagement: React.FC = () => {
   const { data: pdfs, isLoading, error } = usePDFs();
+  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const deletePDFMutation = useDeletePDF();
   const updatePDFMutation = useUpdatePDF();
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [editingPDF, setEditingPDF] = useState<PDFDocument | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [editForm, setEditForm] = useState({
     title: '',
     author: '',
@@ -80,6 +83,55 @@ const PDFManagement: React.FC = () => {
     }));
   };
 
+  // Filter PDFs based on search term
+  const filteredPDFs = useMemo(() => {
+    if (!pdfs) return [];
+    if (!searchTerm.trim()) return pdfs;
+
+    const searchLower = searchTerm.toLowerCase();
+    return pdfs.filter(pdf => 
+      pdf.title.toLowerCase().includes(searchLower) ||
+      pdf.author.toLowerCase().includes(searchLower) ||
+      pdf.description.toLowerCase().includes(searchLower) ||
+      pdf.categories.some(category => category.toLowerCase().includes(searchLower)) ||
+      pdf.tags.some(tag => tag.toLowerCase().includes(searchLower))
+    );
+  }, [pdfs, searchTerm]);
+
+  // Helper function to highlight search terms
+  const highlightSearchTerm = (text: string, searchTerm: string) => {
+    if (!searchTerm.trim()) return text;
+    
+    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+    
+    return parts.map((part, index) =>
+      regex.test(part) ? (
+        <mark key={index} className="bg-yellow-200 px-1 rounded">
+          {part}
+        </mark>
+      ) : (
+        part
+      )
+    );
+  };
+
+  // Keyboard shortcut to focus search (Ctrl/Cmd + K)
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+        event.preventDefault();
+        const searchInput = document.getElementById('pdf-search-input');
+        if (searchInput) {
+          searchInput.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -100,9 +152,9 @@ const PDFManagement: React.FC = () => {
     );
   }
 
-  const totalViews = pdfs?.reduce((sum, pdf) => sum + pdf.viewCount, 0) || 0;
-  const totalDownloads = pdfs?.reduce((sum, pdf) => sum + pdf.downloadCount, 0) || 0;
-  const thisMonth = pdfs?.filter(pdf => {
+  const totalViews = filteredPDFs?.reduce((sum, pdf) => sum + pdf.viewCount, 0) || 0;
+  const totalDownloads = filteredPDFs?.reduce((sum, pdf) => sum + pdf.downloadCount, 0) || 0;
+  const thisMonth = filteredPDFs?.filter(pdf => {
     const pdfDate = new Date(pdf.createdAt);
     const now = new Date();
     return pdfDate.getMonth() === now.getMonth() && pdfDate.getFullYear() === now.getFullYear();
@@ -120,14 +172,56 @@ const PDFManagement: React.FC = () => {
         </Link>
       </div>
 
+      {/* Search Bar */}
+      <div className="bg-white rounded-lg shadow-sm border p-4">
+        <div className="relative max-w-md">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            id="pdf-search-input"
+            type="text"
+            placeholder="Search PDFs by title, author, category, or tags... (Ctrl+K)"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+          />
+          {searchTerm && (
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+              <button
+                onClick={() => setSearchTerm('')}
+                className="text-gray-400 hover:text-gray-600"
+                title="Clear search"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          )}
+        </div>
+        {searchTerm && (
+          <div className="mt-2 text-sm text-gray-600">
+            Showing {filteredPDFs.length} of {pdfs?.length || 0} PDFs
+          </div>
+        )}
+      </div>
+
       {/* Stats Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         <div className="bg-white p-4 lg:p-6 rounded-lg shadow-sm border">
           <div className="flex items-center">
             <FileText className="h-6 w-6 lg:h-8 lg:w-8 text-blue-600" />
             <div className="ml-3 lg:ml-4">
-              <p className="text-sm font-medium text-gray-600">Total PDFs</p>
-              <p className="text-xl lg:text-2xl font-bold text-gray-900">{pdfs?.length || 0}</p>
+              <p className="text-sm font-medium text-gray-600">
+                {searchTerm ? 'Filtered PDFs' : 'Total PDFs'}
+              </p>
+              <p className="text-xl lg:text-2xl font-bold text-gray-900">
+                {searchTerm ? filteredPDFs?.length || 0 : pdfs?.length || 0}
+                {searchTerm && (
+                  <span className="text-sm font-normal text-gray-500 ml-2">
+                    of {pdfs?.length || 0}
+                  </span>
+                )}
+              </p>
             </div>
           </div>
         </div>
@@ -164,9 +258,11 @@ const PDFManagement: React.FC = () => {
       </div>      {/* PDFs Table */}
       <div className="bg-white rounded-lg shadow-sm border">
         <div className="px-4 lg:px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">All PDFs ({pdfs?.length || 0})</h2>
+          <h2 className="text-lg font-semibold text-gray-900">
+            {searchTerm ? 'Search Results' : 'All PDFs'} ({filteredPDFs?.length || 0})
+          </h2>
         </div>
-        {pdfs && pdfs.length > 0 ? (
+        {filteredPDFs && filteredPDFs.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -192,7 +288,7 @@ const PDFManagement: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {pdfs.map((pdf) => (
+                {filteredPDFs.map((pdf) => (
                   <tr key={pdf.id} className="hover:bg-gray-50">
                     <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -203,20 +299,20 @@ const PDFManagement: React.FC = () => {
                         </div>
                         <div className="ml-3 lg:ml-4">
                           <div className="text-sm font-medium text-gray-900 max-w-xs truncate">
-                            {pdf.title}
+                            {searchTerm ? highlightSearchTerm(pdf.title, searchTerm) : pdf.title}
                           </div>
                           <div className="text-xs lg:text-sm text-gray-500 max-w-xs truncate">
-                            {pdf.categories.join(', ')}
+                            {searchTerm ? highlightSearchTerm(pdf.categories.join(', '), searchTerm) : pdf.categories.join(', ')}
                           </div>
                           {/* Show author on mobile when author column is hidden */}
                           <div className="sm:hidden text-xs text-gray-500 truncate mt-1">
-                            by {pdf.author}
+                            by {searchTerm ? highlightSearchTerm(pdf.author, searchTerm) : pdf.author}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="hidden sm:table-cell px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {pdf.author}
+                      {searchTerm ? highlightSearchTerm(pdf.author, searchTerm) : pdf.author}
                     </td>
                     <td className="hidden md:table-cell px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {pdf.viewCount.toLocaleString()}
@@ -253,14 +349,31 @@ const PDFManagement: React.FC = () => {
         ) : (
           <div className="text-center py-12">
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900">No PDFs uploaded yet</h3>
-            <p className="text-gray-500 mb-4">Start by uploading your first PDF document</p>
-            <Link
-              to="/dashboard/upload"
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              Upload First PDF
-            </Link>
+            {searchTerm ? (
+              <>
+                <h3 className="text-lg font-medium text-gray-900">No PDFs found</h3>
+                <p className="text-gray-500 mb-4">
+                  No PDFs match your search for "{searchTerm}". Try adjusting your search terms.
+                </p>
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Clear Search
+                </button>
+              </>
+            ) : (
+              <>
+                <h3 className="text-lg font-medium text-gray-900">No PDFs uploaded yet</h3>
+                <p className="text-gray-500 mb-4">Start by uploading your first PDF document</p>
+                <Link
+                  to="/dashboard/upload"
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Upload First PDF
+                </Link>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -354,19 +467,16 @@ const PDFManagement: React.FC = () => {
                   value={editForm.category}
                   onChange={(e) => setEditForm(prev => ({ ...prev, category: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={categoriesLoading}
                 >
-                  <option value="">Select a category</option>
-                  <option value="Programming">Programming</option>
-                  <option value="Web Development">Web Development</option>
-                  <option value="Database">Database</option>
-                  <option value="Backend">Backend</option>
-                  <option value="Frontend">Frontend</option>
-                  <option value="Mobile">Mobile</option>
-                  <option value="Design">Design</option>
-                  <option value="Business">Business</option>
-                  <option value="Education">Education</option>
-                  <option value="Research">Research</option>
-                  <option value="Other">Other</option>
+                  <option value="">
+                    {categoriesLoading ? 'Loading categories...' : 'Select a category'}
+                  </option>
+                  {!categoriesLoading && categories.map((category) => (
+                    <option key={category.id} value={category.name}>
+                      {category.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 

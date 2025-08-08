@@ -6,10 +6,13 @@ import type { PDFDocument } from '../types';
 // Components (to be created)
 import PDFCard from '../components/pdf/PDFCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import TextType from '../components/common/TextType';
+import LetterGlitch from '../components/common/LetterGlitch';
 
 // Hooks
 import { usePDFs } from '../hooks/usePDF';
 import { useCategories } from '../hooks/useCategories';
+import { useTypingPlaceholder } from '../hooks/useTypingPlaceholder';
 
 const HomePage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,19 +24,37 @@ const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { data: pdfs, isLoading: pdfsLoading } = usePDFs();
   const { data: dashboardCategories, isLoading: categoriesLoading } = useCategories();
+  const searchInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  // Animate search input placeholder with typing effect (must be before any early returns)
+  useTypingPlaceholder(
+    searchInputRef,
+    [
+      'Search PDFs by title, author, or content...',
+      'Try keywords like: Short notes, Physics, Trigonometry',
+      'Filter by categories and tags too!'
+    ],
+    { typeSpeed: 35, deleteSpeed: 20, delayBetween: 1100, startDelay: 500, pauseOnFocus: true }
+  );
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
-      if (!target.closest('.dropdown-container')) {
+      // Check if the click is outside both dropdown containers
+      const categoryDropdown = document.querySelector('.category-dropdown-container');
+      const sortDropdown = document.querySelector('.sort-dropdown-container');
+      
+      if (categoryDropdown && !categoryDropdown.contains(target)) {
         setShowCategoryDropdown(false);
+      }
+      if (sortDropdown && !sortDropdown.contains(target)) {
         setShowSortDropdown(false);
       }
     };
 
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
     // Filter and sort PDFs based on search term, selected categories, and sort order
@@ -80,22 +101,13 @@ const HomePage: React.FC = () => {
   }, [dashboardCategories]);
 
   if (pdfsLoading || categoriesLoading) {
-    return <LoadingSpinner />;
+    return <LoadingSpinner renderGlitchBg message="Loading..." />;
   }
 
   return (
-    <div 
-      className="main-container"
-      style={{
-        backgroundImage: 'url("bg2.webp")',
-        backgroundPosition: 'center center',
-        backgroundSize: 'cover',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed',
-        minHeight: '100vh',
-        backgroundColor: '#2d3748'
-      }}
-    >
+    <div className="main-container" style={{ position: 'relative', minHeight: '100vh' }}>
+      {/* Fullscreen animated background */}
+      <LetterGlitch glitchSpeed={50} centerVignette={true} outerVignette={false} smooth={true} zIndex={0} />
       <div className="content-wrapper">
         {/* Hero Section */}
         <div className="hero-section glass">
@@ -108,11 +120,37 @@ const HomePage: React.FC = () => {
             />
           </div>
           
-          <h1 className="hero-title" style={{color: '#ffffff'}}>
-            Tea Time Study
+          <h1
+            className="hero-title"
+            style={{
+              color: '#ffffff',
+              fontWeight: 600,
+              fontFamily: 'Jua, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"'
+            }}
+          >
+            <TextType
+              words={["Tea Time Study"]}
+              typeSpeed={60}
+              deleteSpeed={0}
+              delayBetween={0}
+              loop={false}
+              ariaLabel="Tea Time Study title"
+              cursorChar=""
+            />
           </h1>
-          <p className="hero-description" style={{color: '#ffffff'}}>
-            Discover, sip, and study with our cozy collection of notes and resources!
+          <p className="hero-description" style={{color: '#ffffff', minHeight: '2.5em'}}>
+            <TextType
+              words={[
+                "Welcome to Tea Time Study! It's great to have you here!",
+                'Discover, sip, and study with our cozy collection of notes and resources!'
+              ]}
+              typeSpeed={45}
+              deleteSpeed={25}
+              delayBetween={1200}
+              loop
+              ariaLabel="Homepage hero typing text"
+              cursorChar="|"
+            />
           </p>
         </div>
 
@@ -126,6 +164,7 @@ const HomePage: React.FC = () => {
             flexWrap: 'wrap'
           }}>
             <input
+              ref={searchInputRef}
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -144,9 +183,13 @@ const HomePage: React.FC = () => {
               }}
             />
             
-            <div className="relative dropdown-container" style={{position: 'relative'}}>
+            <div className="relative category-dropdown-container" style={{position: 'relative', zIndex: 200}}>
               <button
-                onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowCategoryDropdown(!showCategoryDropdown);
+                  setShowSortDropdown(false); // Close other dropdown
+                }}
                 className="glass"
                 style={{
                   padding: '0.75rem 1rem',
@@ -172,24 +215,32 @@ const HomePage: React.FC = () => {
                   width: '200px',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
                   borderRadius: '12px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                   display: 'flex',
                   flexDirection: 'column',
-                  zIndex: 1000
+                  zIndex: 9999,
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(15px)'
                 }}>
                   <div
                     style={{
                       padding: '0.75rem 1rem',
                       cursor: 'pointer',
                       transition: 'background 0.2s',
-                      backgroundColor: selectedCategories.length === 0 ? '#f0f4ff' : 'transparent'
+                      backgroundColor: selectedCategories.length === 0 ? 'rgba(91, 130, 245, 0.1)' : 'transparent',
+                      color: '#1f2937',
+                      borderRadius: '8px 8px 0 0'
                     }}
                     onClick={() => {
                       setSelectedCategories([]);
                       setShowCategoryDropdown(false);
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f4ff'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = selectedCategories.length === 0 ? '#f0f4ff' : 'transparent'}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(91, 130, 245, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = selectedCategories.length === 0 ? 'rgba(91, 130, 245, 0.1)' : 'transparent';
+                    }}
                   >
                     All Categories {selectedCategories.length === 0 && <span style={{float: 'right', color: '#5b82f5'}}>✓</span>}
                   </div>
@@ -200,7 +251,8 @@ const HomePage: React.FC = () => {
                         padding: '0.75rem 1rem',
                         cursor: 'pointer',
                         transition: 'background 0.2s',
-                        backgroundColor: selectedCategories.includes(categoryName) ? '#f0f4ff' : 'transparent'
+                        backgroundColor: selectedCategories.includes(categoryName) ? 'rgba(91, 130, 245, 0.1)' : 'transparent',
+                        color: '#1f2937'
                       }}
                       onClick={() => {
                         if (selectedCategories.includes(categoryName)) {
@@ -209,8 +261,12 @@ const HomePage: React.FC = () => {
                           setSelectedCategories(prev => [...prev, categoryName]);
                         }
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f4ff'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = selectedCategories.includes(categoryName) ? '#f0f4ff' : 'transparent'}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(91, 130, 245, 0.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = selectedCategories.includes(categoryName) ? 'rgba(91, 130, 245, 0.1)' : 'transparent';
+                      }}
                     >
                       {categoryName} {selectedCategories.includes(categoryName) && <span style={{float: 'right', color: '#5b82f5'}}>✓</span>}
                     </div>
@@ -219,9 +275,13 @@ const HomePage: React.FC = () => {
               )}
             </div>
 
-            <div className="relative dropdown-container" style={{position: 'relative'}}>
+            <div className="relative sort-dropdown-container" style={{position: 'relative', zIndex: 200}}>
               <button
-                onClick={() => setShowSortDropdown(!showSortDropdown)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSortDropdown(!showSortDropdown);
+                  setShowCategoryDropdown(false); // Close other dropdown
+                }}
                 className="glass"
                 style={{
                   padding: '0.75rem 1rem',
@@ -247,24 +307,32 @@ const HomePage: React.FC = () => {
                   width: '150px',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
                   borderRadius: '12px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                   display: 'flex',
                   flexDirection: 'column',
-                  zIndex: 1000
+                  zIndex: 9999,
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(15px)'
                 }}>
                   <div
                     style={{
                       padding: '0.75rem 1rem',
                       cursor: 'pointer',
                       transition: 'background 0.2s',
-                      backgroundColor: sortOrder === 'newest' ? '#f0f4ff' : 'transparent'
+                      backgroundColor: sortOrder === 'newest' ? 'rgba(91, 130, 245, 0.1)' : 'transparent',
+                      color: '#1f2937',
+                      borderRadius: '8px 8px 0 0'
                     }}
                     onClick={() => {
                       setSortOrder('newest');
                       setShowSortDropdown(false);
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f4ff'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = sortOrder === 'newest' ? '#f0f4ff' : 'transparent'}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(91, 130, 245, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = sortOrder === 'newest' ? 'rgba(91, 130, 245, 0.1)' : 'transparent';
+                    }}
                   >
                     Latest {sortOrder === 'newest' && <span style={{float: 'right', color: '#5b82f5'}}>✓</span>}
                   </div>
@@ -273,14 +341,19 @@ const HomePage: React.FC = () => {
                       padding: '0.75rem 1rem',
                       cursor: 'pointer',
                       transition: 'background 0.2s',
-                      backgroundColor: sortOrder === 'oldest' ? '#f0f4ff' : 'transparent'
+                      backgroundColor: sortOrder === 'oldest' ? 'rgba(91, 130, 245, 0.1)' : 'transparent',
+                      color: '#1f2937'
                     }}
                     onClick={() => {
                       setSortOrder('oldest');
                       setShowSortDropdown(false);
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f4ff'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = sortOrder === 'oldest' ? '#f0f4ff' : 'transparent'}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(91, 130, 245, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = sortOrder === 'oldest' ? 'rgba(91, 130, 245, 0.1)' : 'transparent';
+                    }}
                   >
                     Oldest {sortOrder === 'oldest' && <span style={{float: 'right', color: '#5b82f5'}}>✓</span>}
                   </div>
@@ -289,14 +362,20 @@ const HomePage: React.FC = () => {
                       padding: '0.75rem 1rem',
                       cursor: 'pointer',
                       transition: 'background 0.2s',
-                      backgroundColor: sortOrder === 'most-viewed' ? '#f0f4ff' : 'transparent'
+                      backgroundColor: sortOrder === 'most-viewed' ? 'rgba(91, 130, 245, 0.1)' : 'transparent',
+                      color: '#1f2937',
+                      borderRadius: '0 0 8px 8px'
                     }}
                     onClick={() => {
                       setSortOrder('most-viewed');
                       setShowSortDropdown(false);
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f4ff'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = sortOrder === 'most-viewed' ? '#f0f4ff' : 'transparent'}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(91, 130, 245, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = sortOrder === 'most-viewed' ? 'rgba(91, 130, 245, 0.1)' : 'transparent';
+                    }}
                   >
                     Most Viewed {sortOrder === 'most-viewed' && <span style={{float: 'right', color: '#5b82f5'}}>✓</span>}
                   </div>
@@ -331,7 +410,7 @@ const HomePage: React.FC = () => {
                 color: '#ffffff',
                 marginBottom: '1rem'
               }}>
-                🔍 No PDFs found
+                 No PDFs found
               </h3>
               <p style={{
                 color: '#ffffff',
@@ -343,21 +422,26 @@ const HomePage: React.FC = () => {
               </p>
             </div>
           ) : (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-              gap: '40px',
-              justifyContent: 'center',
-              padding: '20px 0',
-              maxWidth: '1200px',
-              margin: '0 auto'
-            }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                gap: '40px',
+                justifyContent: 'center',
+                padding: '20px 0',
+                maxWidth: '1200px',
+                margin: '0 auto'
+              }}
+            >
               {filteredPDFs.map((pdf: PDFDocument) => (
-                <div key={pdf.id} style={{ 
-                  margin: '0',
-                  display: 'flex',
-                  justifyContent: 'center'
-                }}>
+                <div
+                  key={pdf.id}
+                  style={{
+                    margin: '0',
+                    display: 'flex',
+                    justifyContent: 'center'
+                  }}
+                >
                   <PDFCard pdf={pdf} />
                 </div>
               ))}
@@ -488,6 +572,74 @@ const HomePage: React.FC = () => {
                 style={{ color: '#ffffff' }}
               >
                 <path d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z" />
+              </svg>
+            </li>
+
+            <li style={{
+              position: 'relative',
+              background: 'rgba(255, 255, 255, 0.1)',
+              borderRadius: '50%',
+              width: '50px',
+              height: '50px',
+              fontSize: '18px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              cursor: 'pointer',
+              transition: 'all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#0A66C2';
+              e.currentTarget.style.transform = 'translateY(-5px) scale(1.1)';
+              e.currentTarget.style.boxShadow = '0 8px 20px rgba(10, 102, 194, 0.3)';
+              const tooltip = e.currentTarget.querySelector('.tooltip') as HTMLElement;
+              if (tooltip) {
+                tooltip.style.opacity = '1';
+                tooltip.style.top = '-45px';
+                tooltip.style.visibility = 'visible';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+              e.currentTarget.style.transform = 'translateY(0) scale(1)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+              const tooltip = e.currentTarget.querySelector('.tooltip') as HTMLElement;
+              if (tooltip) {
+                tooltip.style.opacity = '0';
+                tooltip.style.top = '0';
+                tooltip.style.visibility = 'hidden';
+              }
+            }}
+            onClick={() => window.open('https://www.linkedin.com', '_blank')}
+            >
+              <span className="tooltip" style={{
+                position: 'absolute',
+                top: '0',
+                fontSize: '14px',
+                background: '#0A66C2',
+                color: '#fff',
+                padding: '5px 8px',
+                borderRadius: '5px',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                opacity: '0',
+                pointerEvents: 'none',
+                transition: 'all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+                visibility: 'hidden',
+                whiteSpace: 'nowrap'
+              }}>
+                LinkedIn
+              </span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="1.2em"
+                fill="currentColor"
+                viewBox="0 0 16 16"
+                style={{ color: '#ffffff' }}
+              >
+                <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708C16 15.487 15.474 16 14.825 16H1.175C.526 16 0 15.487 0 14.854V1.146zM4.943 13.394V6.169H2.542v7.225h2.401zM3.743 4.956c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248-.822 0-1.358.54-1.358 1.248 0 .694.521 1.248 1.327 1.248h.015zM13.458 13.394V9.349c0-2.218-1.184-3.251-2.764-3.251-1.28 0-1.856.704-2.169 1.201h.016V6.169H6.141c.032.704 0 7.225 0 7.225h2.401V9.804c0-.192.014-.384.072-.521.158-.384.518-.782 1.121-.782.79 0 1.107.59 1.107 1.456v3.436h2.616z"/>
               </svg>
             </li>
 

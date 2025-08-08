@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { Mail, Lock, UserPlus } from 'lucide-react';
+import { Mail, Lock, UserPlus, ArrowLeft } from 'lucide-react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { guestAuth } from '../../config/firebase-guest';
 
@@ -87,6 +87,32 @@ const GuestAuth: React.FC<GuestAuthProps> = ({ onAuthSuccess }) => {
         maxWidth: '450px',
         width: '100%'
       }}>
+        {/* Back Button (inside container) */}
+        <div style={{ marginBottom: '2rem' }}>
+          <Link
+            to="/"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              color: '#7f8c8d',
+              textDecoration: 'none',
+              fontSize: '0.9rem',
+              fontWeight: 500,
+              transition: 'color 0.3s ease'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.color = '#3498db';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.color = '#7f8c8d';
+            }}
+            aria-label="Back to site"
+          >
+            <ArrowLeft size={16} />
+            Back to Site
+          </Link>
+        </div>
         <div style={{
           textAlign: 'center',
           marginBottom: '2.5rem'

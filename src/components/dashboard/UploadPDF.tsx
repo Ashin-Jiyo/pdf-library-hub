@@ -3,7 +3,7 @@ import { Upload, FileText, Link } from 'lucide-react';
 import { useCreatePDFWithFile, useCreatePDF } from '../../hooks/usePDF';
 import { useAuthState } from '../../hooks/useAuthState';
 import { useCategories } from '../../hooks/useCategories';
-import { checkEnvironmentConfig } from '../../utils/configChecker';
+import { checkEnvironmentConfig, testUploadServices } from '../../utils/configChecker';
 import { testAllServices } from '../../utils/serviceTests';
 import toast from 'react-hot-toast';
 
@@ -30,6 +30,9 @@ const UploadPDF: React.FC = () => {
   useEffect(() => {
     const isConfigured = checkEnvironmentConfig();
     setConfigChecked(isConfigured);
+    
+    // Run upload service tests
+    testUploadServices();
     
     // Debug Appwrite configuration
     const appwriteProjectId = import.meta.env.VITE_APPWRITE_PROJECT_ID;
@@ -220,12 +223,29 @@ const UploadPDF: React.FC = () => {
       console.log('User:', user);
       console.log('File:', selectedFile);
       console.log('Form data:', formData);
+      
+      // Run pre-upload checks
+      const configOk = checkEnvironmentConfig();
+      if (!configOk) {
+        toast.error('Upload configuration is incomplete. Check console for details.');
+        return;
+      }
+      
+      // Test upload services (async, no return value)
+      await testUploadServices();
+      
       console.log('Firebase config check:', {
         projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
         storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
       });
       
-      console.log('Starting upload process...');
+      console.log('🚀 Starting upload process...');
+      
+      // Show upload progress toast
+      const uploadToast = toast.loading('Uploading PDF...', {
+        duration: 60000, // 1 minute timeout
+      });
+      
       const result = await createPDFMutation.mutateAsync({
         file: selectedFile,
         pdfData: {
@@ -240,7 +260,8 @@ const UploadPDF: React.FC = () => {
         }
       });
       
-      console.log('Upload successful, result:', result);
+      toast.dismiss(uploadToast);
+      console.log('✅ Upload successful, result:', result);
       
       // Reset form
       setFormData({
@@ -260,8 +281,13 @@ const UploadPDF: React.FC = () => {
       if (fileInput) fileInput.value = '';
       
     } catch (error) {
-      console.error('Upload failed:', error);
-      // Error will be shown by the mutation's onError handler
+      console.error('❌ Upload failed:', error);
+      // Provide specific error message
+      if (error instanceof Error) {
+        toast.error(`Upload failed: ${error.message}`);
+      } else {
+        toast.error('Upload failed: Unknown error occurred');
+      }
     }
   };
   return (
@@ -294,17 +320,18 @@ const UploadPDF: React.FC = () => {
                 </p>
                 <button
                   onClick={async () => {
+                    console.log('🧪 Testing Firebase upload configuration...');
                     const results = await testAllServices();
                     if (results.overall) {
-                      toast.success('All services configured correctly!');
+                      toast.success('Firebase configuration verified! Upload should work.');
                       setConfigChecked(true);
                     } else {
-                      toast.error('Some services need configuration. Check console.');
+                      toast.error('Firebase configuration issues found. Check console.');
                     }
                   }}
                   className="mt-2 px-3 py-1 bg-yellow-600 text-white text-xs rounded hover:bg-yellow-700"
                 >
-                  Test Services
+                  Test Firebase Setup
                 </button>
               </div>
             </div>
