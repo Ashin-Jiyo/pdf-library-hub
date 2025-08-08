@@ -1,5 +1,5 @@
 import { uploadToMainAccount, uploadToSmallAccount } from './imagekitDualService';
-import { uploadToAppwrite } from './appwriteService';
+import { uploadToAppwrite, isAppwriteConfigured } from './appwriteService';
 import { pdfService } from './pdfService';
 
 export type UploadProvider = 'imagekit-small' | 'imagekit-large' | 'appwrite';
@@ -32,9 +32,8 @@ export const uploadPDFFile = async (
   try {
     console.log(`📊 File Analysis: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)}MB)`);
     
-    // Check if Appwrite is configured
-    const appwriteConfigured = import.meta.env.VITE_APPWRITE_PROJECT_ID && 
-                              !import.meta.env.VITE_APPWRITE_PROJECT_ID.includes('your_');
+    // Check if Appwrite is configured using the service function
+    const appwriteConfigured = isAppwriteConfigured();
     
     if (file.size > LARGE_FILE_THRESHOLD && !appwriteConfigured) {
       throw new Error(`File size (${(file.size / (1024 * 1024)).toFixed(2)}MB) exceeds current limit of 25MB. To upload files up to 50MB, please configure Appwrite storage. See APPWRITE_SETUP.md for instructions.`);
