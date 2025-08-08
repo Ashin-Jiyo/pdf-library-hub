@@ -27,9 +27,12 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  // Get the base URL for GitHub Pages deployment
+  const basename = import.meta.env.MODE === 'production' ? '/pdf-library-hub' : '';
+  
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
+      <Router basename={basename}>
         <div className="min-h-screen">
           {/* Global click spark overlay */}
           <ClickSpark />
