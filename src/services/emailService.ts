@@ -45,9 +45,9 @@ Submitted at: ${new Date().toLocaleString()}
         `
       };
 
-      // Configure EmailJS - you need to replace these with your actual values
-      const serviceID = 'service_fn5s7ze'; // Replace with your EmailJS service ID
-      const templateID = 'template_equfrhk'; // Replace with your EmailJS template ID
+      // Configure EmailJS - using environment variables
+      const serviceID = import.meta.env.VITE_EMAILJS_SERVICE_ID || 'service_fn5s7ze';
+      const templateID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'template_equfrhk';
 
       console.log('Sending email with EmailJS:', templateParams);
 
@@ -232,8 +232,8 @@ Submitted at: ${new Date().toLocaleString()}
       };
 
       // Use EmailJS with the same configuration as access requests
-      const serviceID = 'service_fn5s7ze'; // Replace with your EmailJS service ID
-      const templateID = 'template_equfrhk'; // Replace with your EmailJS template ID
+      const serviceID = import.meta.env.VITE_EMAILJS_SERVICE_ID || 'service_fn5s7ze';
+      const templateID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'template_equfrhk';
 
       console.log('Sending category request with EmailJS:', templateParams);
 

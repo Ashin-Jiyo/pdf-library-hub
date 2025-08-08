@@ -5,7 +5,7 @@ import './index.css'
 import App from './App.tsx'
 
 // Initialize EmailJS
-emailjs.init('_9RGrzGJBHDS-3KMA'); // Replace with your EmailJS public key
+emailjs.init(import.meta.env.VITE_EMAILJS_PUBLIC_KEY || '_9RGrzGJBHDS-3KMA');
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
