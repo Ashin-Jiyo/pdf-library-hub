@@ -1,5 +1,4 @@
 import { uploadToMainAccount, uploadToSmallAccount } from './imagekitDualService';
-import { uploadToAppwrite, isAppwriteConfigured } from './appwriteService';
 import { pdfService } from './pdfService';
 
 export type UploadProvider = 'imagekit-small' | 'imagekit-large' | 'appwrite';
@@ -18,7 +17,6 @@ export interface TripleUploadResult {
 // File size thresholds (in bytes)
 const SMALL_FILE_THRESHOLD = 10 * 1024 * 1024; // 10MB
 const MEDIUM_FILE_THRESHOLD = 25 * 1024 * 1024; // 25MB
-const LARGE_FILE_THRESHOLD = 50 * 1024 * 1024; // 50MB
 
 export const uploadPDFFile = async (
   file: File,
@@ -31,22 +29,10 @@ export const uploadPDFFile = async (
 ): Promise<string> => {
   try {
     console.log(`📊 File Analysis: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)}MB)`);
-    
-    // Check if Appwrite is configured using the service function
-    const appwriteConfigured = isAppwriteConfigured();
-    
-    if (file.size > LARGE_FILE_THRESHOLD && !appwriteConfigured) {
-      throw new Error(`File size (${(file.size / (1024 * 1024)).toFixed(2)}MB) exceeds current limit of 25MB. To upload files up to 50MB, please configure Appwrite storage. See APPWRITE_SETUP.md for instructions.`);
+    if (file.size > MEDIUM_FILE_THRESHOLD) {
+      throw new Error(`File size (${(file.size / (1024 * 1024)).toFixed(2)}MB) exceeds maximum limit of 25MB. Appwrite is disabled.`);
     }
-    
-    if (file.size > LARGE_FILE_THRESHOLD) {
-      throw new Error(`File size (${(file.size / (1024 * 1024)).toFixed(2)}MB) exceeds maximum limit of 50MB`);
-    }
-
     let uploadResult: TripleUploadResult;
-    const fileName = `pdf_${Date.now()}_${file.name}`;
-
-    // Route to appropriate service based on file size and availability
     if (file.size < SMALL_FILE_THRESHOLD) {
       // Small files: ImageKit Small Account (< 10MB)
       console.log('🔹 Routing to ImageKit Small Account (< 10MB)');
@@ -60,10 +46,9 @@ export const uploadPDFFile = async (
         provider: 'imagekit-small' as UploadProvider,
         downloadUrl: result.url
       };
-    } else if (file.size < MEDIUM_FILE_THRESHOLD || !appwriteConfigured) {
-      // Medium files: ImageKit Main Account (10-25MB, or 10-50MB if Appwrite not configured)
-      const maxSize = appwriteConfigured ? 25 : 50;
-      console.log(`🔸 Routing to ImageKit Main Account (10-${maxSize}MB)`);
+    } else {
+      // Medium files: ImageKit Main Account (10-25MB)
+      console.log('🔸 Routing to ImageKit Main Account (10-25MB)');
       const result = await uploadToMainAccount(file);
       uploadResult = {
         fileId: result.fileId,
@@ -74,24 +59,8 @@ export const uploadPDFFile = async (
         provider: 'imagekit-large' as UploadProvider,
         downloadUrl: result.url
       };
-    } else {
-      // Large files: Appwrite (25-50MB) - only if configured
-      console.log('🔶 Routing to Appwrite (25-50MB)');
-      const appwriteResult = await uploadToAppwrite(file, fileName);
-      uploadResult = {
-        fileId: appwriteResult.fileId,
-        fileName: appwriteResult.fileName,
-        fileSize: appwriteResult.fileSize,
-        mimeType: appwriteResult.mimeType,
-        url: appwriteResult.url,
-        provider: 'appwrite' as UploadProvider,
-        downloadUrl: appwriteResult.url,
-        bucketId: appwriteResult.bucketId // Store bucketId for later use
-      };
     }
-
     console.log(`✅ Upload successful via ${uploadResult.provider}:`, uploadResult.fileName);
-
     // Prepare document data, omitting undefined fields for Firestore
     const documentData: any = {
       title,
@@ -109,26 +78,14 @@ export const uploadPDFFile = async (
       downloadCount: 0,
       uploadedBy
     };
-
     // Only add imagekitFileId for ImageKit uploads
     if (uploadResult.provider.startsWith('imagekit')) {
       documentData.imagekitFileId = uploadResult.fileId;
     }
-
-    // Add provider-specific fields
-    if (uploadResult.provider === 'appwrite') {
-      documentData.appwriteFileId = uploadResult.fileId;
-      if (uploadResult.bucketId) {
-        documentData.appwriteBucketId = uploadResult.bucketId;
-      }
-    }
-
     // Save metadata to Firestore
     const pdfId = await pdfService.createPDF(documentData);
-
     console.log('💾 PDF metadata saved to Firestore with ID:', pdfId);
     return pdfId;
-
   } catch (error) {
     console.error('❌ Upload failed:', error);
     throw error;
@@ -148,7 +105,7 @@ export const getProviderInfo = (fileSize: number) => {
       description: 'ImageKit Main Account (10-25MB)',
       icon: '🔸'
     };
-  } else if (fileSize < LARGE_FILE_THRESHOLD) {
+  // (Removed: else if (fileSize < LARGE_FILE_THRESHOLD) { )
     return {
       provider: 'appwrite' as UploadProvider,
       description: 'Appwrite Storage (25-50MB)',

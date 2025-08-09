@@ -52,14 +52,18 @@ export const imagekitDualService = {
       const timestamp = Date.now();
       const authParams = getImageKitAuthParams();
       
+      // Sanitize filename to prevent 400 errors
+      const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('fileName', `large_${timestamp}_${file.name}`);
+      formData.append('fileName', `large_${timestamp}_${sanitizedFileName}`);
       formData.append('folder', '/pdf-library/large-pdfs');
       formData.append('publicKey', authParams.publicKey);
       formData.append('signature', authParams.signature);
       formData.append('expire', authParams.expire);
       formData.append('token', authParams.token);
+      formData.append('useUniqueFileName', 'true');
 
       const response = await fetch('https://upload.imagekit.io/api/v1/files/upload', {
         method: 'POST',
@@ -96,14 +100,18 @@ export const imagekitDualService = {
       const timestamp = Date.now();
       const authParams = getImageKitSmallAuthParams();
       
+      // Sanitize filename to prevent 400 errors
+      const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('fileName', `small_${timestamp}_${file.name}`);
+      formData.append('fileName', `small_${timestamp}_${sanitizedFileName}`);
       formData.append('folder', '/pdf-library/small-pdfs');
       formData.append('publicKey', authParams.publicKey);
       formData.append('signature', authParams.signature);
       formData.append('expire', authParams.expire);
       formData.append('token', authParams.token);
+      formData.append('useUniqueFileName', 'true');
 
       // Use the small account's upload endpoint
       const response = await fetch('https://upload.imagekit.io/api/v1/files/upload', {
