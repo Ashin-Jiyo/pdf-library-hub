@@ -63,43 +63,12 @@ const UploadPDF: React.FC = () => {
         return;
       }
       
-      // Check if Appwrite is configured for large files
-      const appwriteProjectId = import.meta.env.VITE_APPWRITE_PROJECT_ID;
-      const appwriteConfigured = appwriteProjectId && 
-                                appwriteProjectId !== 'your_appwrite_project_id_here' &&
-                                !appwriteProjectId.includes('your_');
-      
-      console.log('🔍 File validation:', {
-        fileName: file.name,
-        fileSize: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
-        appwriteProjectId,
-        appwriteConfigured,
-      });
-      
-      const maxSize = appwriteConfigured ? 50 : 25; // 50MB with Appwrite, 25MB without
-      
+      // Enforce 25MB max file size (Appwrite removed)
+      const maxSize = 25; // MB
       if (file.size > maxSize * 1024 * 1024) {
-        if (!appwriteConfigured) {
-          toast.error(`File size must be less than 25MB. To upload files up to 50MB, please configure Appwrite storage.`);
-        } else {
-          toast.error(`File size must be less than 50MB`);
-        }
-        console.log(`❌ File rejected: ${(file.size / 1024 / 1024).toFixed(2)}MB exceeds ${maxSize}MB limit`);
+        toast.error(`File size must be less than 25MB`);
         return;
       }
-      
-      // Show which service will be used
-      const fileSizeMB = file.size / 1024 / 1024;
-      let service: string;
-      if (fileSizeMB < 10) {
-        service = 'ImageKit Small';
-      } else if (fileSizeMB < 25) {
-        service = 'ImageKit Main';
-      } else {
-        service = 'Appwrite';
-      }
-      console.log(`✅ File accepted: Will upload via ${service} (${fileSizeMB.toFixed(2)}MB)`);
-      
       setSelectedFile(file);
       // Auto-populate title from filename if empty
       if (!formData.title) {
@@ -378,50 +347,53 @@ const UploadPDF: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 PDF File *
               </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+              <div
+                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors cursor-pointer"
+                onDrop={e => {
+                  e.preventDefault();
+                  const files = e.dataTransfer.files;
+                  if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type !== 'application/pdf') {
+                      toast.error('Please select a PDF file');
+                      return;
+                    }
+                    if (file.size > 25 * 1024 * 1024) {
+                      toast.error('File size must be less than 25MB');
+                      return;
+                    }
+                    setSelectedFile(file);
+                    if (!formData.title) {
+                      setFormData(prev => ({ ...prev, title: file.name.replace('.pdf', '').replace(/[_-]/g, ' ') }));
+                    }
+                  }
+                }}
+                onDragOver={e => e.preventDefault()}
+                onClick={() => document.getElementById('pdf-upload')?.click()}
+              >
                 <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                <div className="mt-4">
-                  <label htmlFor="pdf-upload" className="cursor-pointer">
-                    <span className="mt-2 block text-sm font-medium text-gray-900">
-                      {selectedFile ? selectedFile.name : 'Drop PDF file here or click to browse'}
-                    </span>
-                    <input
-                      id="pdf-upload"
-                      name="pdf-upload"
-                      type="file"
-                      accept=".pdf"
-                      className="sr-only"
-                      onChange={handleFileChange}
-                    />
-                  </label>
-                  <p className="mt-1 text-xs text-gray-500">
-                    PDF up to {(() => {
-                      const appwriteConfigured = import.meta.env.VITE_APPWRITE_PROJECT_ID && 
-                                                !import.meta.env.VITE_APPWRITE_PROJECT_ID.includes('your_');
-                      return appwriteConfigured ? '50MB' : '25MB';
-                    })()} 
-                    {(() => {
-                      const appwriteConfigured = import.meta.env.VITE_APPWRITE_PROJECT_ID && 
-                                                !import.meta.env.VITE_APPWRITE_PROJECT_ID.includes('your_');
-                      return !appwriteConfigured ? ' (configure Appwrite for 50MB)' : '';
-                    })()}
-                  </p>
-                  {selectedFile && (
-                    <div className="mt-2 space-y-1">
-                      <p className="text-sm text-green-600">
-                        ✓ File selected ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-                      </p>
-                      <p className="text-xs text-blue-600">
-                        📤 Will upload via {(() => {
-                          const fileSizeMB = selectedFile.size / 1024 / 1024;
-                          if (fileSizeMB < 10) return 'ImageKit Small (< 10MB)';
-                          if (fileSizeMB < 25) return 'ImageKit Main (10-25MB)';
-                          return 'Appwrite (25-50MB)';
-                        })()}
-                      </p>
-                    </div>
-                  )}
-                </div>
+                <p className="mt-2 text-gray-500 text-sm">Maximum file size: 25MB</p>
+                {selectedFile && (
+                  <div className="mt-2">
+                    <p className="text-gray-700 font-semibold">{selectedFile.name}</p>
+                    <p className="text-gray-500 text-xs">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
+                  </div>
+                )}
+                <input
+                  id="pdf-upload"
+                  name="pdf-upload"
+                  type="file"
+                  accept=".pdf"
+                  className="sr-only"
+                  onChange={handleFileChange}
+                  onInput={e => {
+                    const input = e.target as HTMLInputElement;
+                    if (input.files && input.files[0] && input.files[0].size > 25 * 1024 * 1024) {
+                      toast.error('File size must be less than 25MB');
+                      input.value = '';
+                    }
+                  }}
+                />
               </div>
             </div>
           ) : (
@@ -469,6 +441,20 @@ const UploadPDF: React.FC = () => {
                 maxLength={18}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
+              />
+              <input
+                type="file"
+                id="pdf-upload"
+                accept=".pdf"
+                onChange={handleFileChange}
+                className="hidden"
+                onInput={e => {
+                  const input = e.target as HTMLInputElement;
+                  if (input.files && input.files[0] && input.files[0].size > 25 * 1024 * 1024) {
+                    toast.error('File size must be less than 25MB');
+                    input.value = '';
+                  }
+                }}
               />
               <p className="mt-1 text-xs text-gray-500">
                 {formData.title.length}/18 characters

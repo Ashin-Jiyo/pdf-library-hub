@@ -46,17 +46,10 @@ const GuestUpload: React.FC = () => {
         return;
       }
       
-      // Check if Appwrite is configured for large files
-      const appwriteConfigured = import.meta.env.VITE_APPWRITE_PROJECT_ID && 
-                                !import.meta.env.VITE_APPWRITE_PROJECT_ID.includes('your_');
-      const maxSize = appwriteConfigured ? 50 : 25; // 50MB with Appwrite, 25MB without
-      
+      // Enforce 25MB max file size (Appwrite removed)
+      const maxSize = 25; // MB
       if (file.size > maxSize * 1024 * 1024) {
-        if (!appwriteConfigured) {
-          toast.error(`File size must be less than 25MB. To upload files up to 50MB, please configure Appwrite storage.`);
-        } else {
-          toast.error(`File size must be less than 50MB`);
-        }
+        toast.error(`File size must be less than 25MB`);
         return;
       }
       setSelectedFile(file);
@@ -303,14 +296,18 @@ const GuestUpload: React.FC = () => {
               const files = e.dataTransfer.files;
               if (files.length > 0) {
                 const file = files[0];
-                if (file.type === 'application/pdf') {
-                  setSelectedFile(file);
-                  if (!formData.title) {
-                    const nameWithoutExtension = file.name.replace(/\.pdf$/i, '');
-                    setFormData(prev => ({ ...prev, title: nameWithoutExtension }));
-                  }
-                } else {
+                if (file.type !== 'application/pdf') {
                   toast.error('Please select a PDF file');
+                  return;
+                }
+                if (file.size > 25 * 1024 * 1024) {
+                  toast.error('File size must be less than 25MB');
+                  return;
+                }
+                setSelectedFile(file);
+                if (!formData.title) {
+                  const nameWithoutExtension = file.name.replace(/\.pdf$/i, '');
+                  setFormData(prev => ({ ...prev, title: nameWithoutExtension }));
                 }
               }
             }}
@@ -334,7 +331,7 @@ const GuestUpload: React.FC = () => {
                     Click to select or drag & drop your PDF
                   </p>
                   <p style={{ color: '#7f8c8d', fontSize: '0.9rem', margin: 0 }}>
-                    Maximum file size: 50MB
+                    Maximum file size: 25MB
                   </p>
                 </div>
               )}
@@ -346,6 +343,13 @@ const GuestUpload: React.FC = () => {
               onChange={handleFileChange}
               disabled={isLoading}
               style={{ display: 'none' }}
+              onInput={e => {
+                const input = e.target as HTMLInputElement;
+                if (input.files && input.files[0] && input.files[0].size > 25 * 1024 * 1024) {
+                  toast.error('File size must be less than 25MB');
+                  input.value = '';
+                }
+              }}
             />
           </div>
         ) : (
